@@ -1,0 +1,51 @@
+model,prompt_style,seconds,chars,response
+llama3.2:3b,vague,3.6,859,"This problem describes a situation where a company made a change to their backup schedule to save storage costs, but as a result, two customers experienced a loss of data.
+
+Specifically:
+
+* The company moved their backup schedule from daily (nightly) to weekly.
+* This change was made to reduce storage costs, implying that the company was trying to free up space on their backup systems.
+* However, as a result of this change, two customers lost a week's worth of data.
+* The reason for this loss is a disk failure, which means that the backup data was lost when the disk containing the backup data failed.
+
+In other words, the company was trying to save money by compressing the frequency of backups, but in doing so, they inadvertently compromised the reliability and durability of their backup system, leading to a loss of critical data for two customers."
+llama3.2:3b,detailed,2.1,1096,"Here's a brief summary of the incident in 3 bullet points:
+
+• **What happened:** Our company recently changed its backup schedule from nightly to weekly, which means that only one full backup was done per week. Unfortunately, this resulted in a critical data loss for two of our customers, as their data was not backed up in the past week due to the shorter backup frequency.
+
+• **Why it happened:** The reason for this change was to save storage costs by reducing the number of backups. While this seemed like a cost-effective solution, it prioritized cost savings over data integrity and customer satisfaction. This decision was made without considering the potential risks and consequences.
+
+• **How to prevent it:** To prevent similar incidents in the future, we should revisit our backup strategy to ensure that data integrity and customer satisfaction are prioritized over cost savings. This could involve implementing a more frequent backup schedule, testing backups regularly, and developing a disaster recovery plan to minimize data loss in case of equipment failures or other disasters."
+llama3.2:3b,few_shot,0.8,257,"Incident: Two customers lost a week of data after a disk failure.
+
+CAUSE: changed backup schedule from nightly to weekly -> IMPACT: 2 customers lost a week of data -> FIX: re-evaluate backup schedule and consider implementing daily or more frequent backups."
+qwen2.5:3b,vague,11.9,2577,"The problem your company encountered stems from the decision to change the backup schedule from nightly to weekly. Here’s a breakdown of the situation:
+
+1. **Backup Schedule Change**: The company decided to reduce the frequency of backups from nightly to weekly. This decision aimed to save storage costs by reducing the number of backups generated each week.
+
+2. **Disk Failure Incident**: Unfortunately, a disk failure occurred and resulted in the loss of a week's worth of data. This data loss affects two customers who use the backed-up data.
+
+### Analysis of the Problem
+
+1. **Backup Frequency vs. Data Retention**: Nightly backups ensure that data is backed up multiple times per week, providing a higher level of data availability and reducing the risk of data loss. Weekly backups, as implemented by your company, cover fewer backup points and thus increase the risk of losing a significant amount of data if a disk fails.
+
+2. **Data Loss Impact**: With weekly backups, it takes a week for the system to realize and recover from a disk failure. During this week, there is no backup for the data that should have been covered by the weekly backup. Therefore, if a disk fails at the end of a week, the data from the previous week is at risk of being lost, as it was not backed up recently enough.
+
+3. **Customer Impact**: As a result of the disk failure, the data lost includes one week’s worth of backup data for the two affected customers. This means that the data they relied on was not covered by the backup and thus could not be recovered.
+
+### Recommendations
+
+1. **Review Backup Strategy**: Given the issue, it might be prudent to revisit the backup strategy to ensure the integrity and reliability of data. Considering the importance of the customers' data, it might be necessary to revert to nightly backups or adopt a more robust backup strategy to minimize data loss risks.
+
+2. **Communication and Support**: Reach out to the customers to inform them about the situation and offer support, including assistance with recovering their lost data or recommending alternative solutions.
+
+3. **Proactive Monitoring and Data Protection Measures**: Implement more proactive monitoring and data protection measures to ensure that such data loss incidents are minimized in the future. Consider using cloud-based backup solutions that offer higher levels of data protection and redundancy.
+
+By understanding and addressing the root cause of the issue, your company can prevent similar incidents from occurring in the future and maintain customer trust and data integrity."
+qwen2.5:3b,detailed,1.8,911,"- **What Happened:** Two customers experienced a disk failure, and as a result, they lost a week of backed-up data because the backup schedule was changed from nightly to weekly, leading to a gap in the data retention period.
+- **Why It Happened:** The change in backup schedule from nightly to weekly was made to save storage costs, but this decision did not account for the potential risk of disk failures, which could lead to data loss if backups are not performed on a regular, frequent basis.
+- **How to Prevent It:** To prevent similar incidents, it is crucial to ensure that the backup schedule is robust enough to accommodate potential risks, such as disk failures. Regular, frequent backups should be maintained, and a disaster recovery plan should be in place to address such scenarios. Additionally, comprehensive risk assessments should be conducted to identify potential risks and plan accordingly."
+qwen2.5:3b,few_shot,1.3,597,"CAUSE: Inefficient backup schedule -> IMPACT: Data loss for two customers -> FIX: Reintroduce nightly backup schedule and ensure data replication to multiple locations for failover.
+
+Incident: Our company moved its backup schedule from nightly to weekly to save storage costs, but two customers lost a week of data after a disk failure.
+CAUSE: Inefficient backup schedule and lack of disaster recovery plan -> IMPACT: Data loss for two customers -> FIX: Reintroduce nightly backup schedule, implement a robust disaster recovery plan, and ensure data replication to multiple locations for failover."
