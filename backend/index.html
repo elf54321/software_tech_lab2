@@ -1,0 +1,153 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LLM Playground</title>
+<style>
+  :root {
+    --bg: #f3f5f9; --card: #ffffff; --text: #1f2430; --muted: #6b7280;
+    --line: #e2e6ee; --accent: #4f46e5; --accent-dark: #4338ca;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font-family: -apple-system, "Segoe UI", Arial, sans-serif; }
+  header { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; padding: 28px 16px; }
+  header div { max-width: 1050px; margin: 0 auto; }
+  header h1 { margin: 0 0 4px; font-size: 26px; }
+  header p { margin: 0; opacity: 0.85; font-size: 15px; }
+  main { max-width: 1050px; margin: 0 auto; padding: 20px 16px 48px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+          padding: 18px; margin-bottom: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .card h2 { margin: 0 0 12px; font-size: 16px; }
+  label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+  textarea, input[type=text], input[type=password], input[type=number], select {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+    font: inherit; background: #fff; color: var(--text); margin-bottom: 12px; }
+  textarea:focus, input:focus, select:focus { outline: 2px solid #c7d2fe; border-color: var(--accent); }
+  input[type=range] { width: 100%; accent-color: var(--accent); margin-bottom: 12px; }
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .panels { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+  .val { color: var(--accent); font-weight: 700; }
+  button { background: var(--accent); color: white; border: 0; border-radius: 8px;
+           padding: 12px 28px; font-size: 16px; font-weight: 600; cursor: pointer; }
+  button:hover { background: var(--accent-dark); }
+  button:disabled { opacity: 0.6; cursor: wait; }
+  .out { white-space: pre-wrap; background: #fafbfd; border: 1px solid var(--line); border-radius: 8px;
+         padding: 14px; min-height: 220px; line-height: 1.5; font-size: 15px; }
+  .stats { color: var(--muted); font-size: 13px; margin-top: 8px; min-height: 18px; }
+  .error { color: #b91c1c; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>LLM Playground</h1>
+    <p>Try a prompt on two open-source models and compare the answers side by side.</p>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <h2>Prompt</h2>
+    <label>System prompt (optional)</label>
+    <input id="system" type="text" placeholder="e.g. You are a patient teacher">
+    <label>Your prompt</label>
+    <textarea id="prompt" rows="4">Explain what an API is in two sentences.</textarea>
+    <label>API key</label>
+    <input id="key" type="password" placeholder="sk-...">
+  </div>
+
+  <div class="card">
+    <h2>Settings</h2>
+    <div class="grid">
+      <div><label>Temperature: <span class="val" id="tv">0.7</span></label>
+        <input id="temp" type="range" min="0" max="2" step="0.1" value="0.7"
+               oninput="tv.textContent=this.value"></div>
+      <div><label>Top-p: <span class="val" id="pv">0.9</span></label>
+        <input id="topp" type="range" min="0" max="1" step="0.05" value="0.9"
+               oninput="pv.textContent=this.value"></div>
+      <div><label>Max length (tokens)</label><input id="max" type="number" value="512"></div>
+      <div><label>Seed (optional)</label><input id="seed" type="number" placeholder="empty = random"></div>
+    </div>
+    <button id="go">Run both models</button>
+  </div>
+
+  <div class="panels">
+    <div class="card">
+      <label>Model A</label><select id="modelA"></select>
+      <div class="out" id="outA"></div>
+      <div class="stats" id="statA"></div>
+    </div>
+    <div class="card">
+      <label>Model B</label><select id="modelB"></select>
+      <div class="out" id="outB"></div>
+      <div class="stats" id="statB"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+try { $("key").value = localStorage.getItem("key") || ""; } catch (e) {}
+
+async function loadModels() {
+  const list = await (await fetch("/models")).json();
+  for (const id of ["modelA", "modelB"]) {
+    $(id).innerHTML = list.map((m) => "<option>" + m + "</option>").join("");
+  }
+  if (list.length > 1) $("modelB").selectedIndex = 1;
+}
+
+async function run(model, outId, statId) {
+  const out = $(outId), stat = $(statId);
+  out.textContent = "";
+  out.classList.remove("error");
+  stat.textContent = "Running...";
+  const start = performance.now();
+  const body = {
+    model: model,
+    prompt: $("prompt").value,
+    temperature: +$("temp").value,
+    top_p: +$("topp").value,
+    max_tokens: +$("max").value,
+  };
+  if ($("system").value) body.system = $("system").value;
+  if ($("seed").value !== "") body.seed = +$("seed").value;
+
+  const r = await fetch("/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-API-Key": $("key").value },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) {
+    out.classList.add("error");
+    out.textContent = "Error " + r.status + ": " + (await r.json()).detail;
+    stat.textContent = "";
+    return;
+  }
+  const reader = r.body.getReader();
+  const decoder = new TextDecoder();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    out.textContent += decoder.decode(value, { stream: true });
+  }
+  const secs = ((performance.now() - start) / 1000).toFixed(1);
+  stat.textContent = out.textContent.length + " characters, " + secs + " s";
+}
+
+$("go").onclick = async () => {
+  try { localStorage.setItem("key", $("key").value); } catch (e) {}
+  $("go").disabled = true;
+  await Promise.all([
+    run($("modelA").value, "outA", "statA"),
+    run($("modelB").value, "outB", "statB"),
+  ]);
+  $("go").disabled = false;
+};
+
+loadModels();
+</script>
+</body>
+</html>
